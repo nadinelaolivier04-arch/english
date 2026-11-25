@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f7ff">
+  <title>Sentence Steps — English Conversation Game</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17213b;
+      --muted: #68738b;
+      --paper: #fff;
+      --wash: #f4f7ff;
+      --line: #e4e9f4;
+      --purple: #6758e8;
+      --purple-dark: #4c3fd0;
+      --mint: #e5f8ee;
+      --green: #18764a;
+      --coral: #fff0e9;
+      --shadow: 0 18px 55px rgba(34, 48, 91, .1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 12% 0%, #e8eaff 0, transparent 38%), var(--wash);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button { font: inherit; }
+    .page { width: min(100% - 32px, 950px); margin: 0 auto; padding: 28px 0 48px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+    .brand { display:flex; align-items:center; gap:12px; font-size:1.08rem; font-weight:800; letter-spacing:-.03em; }
+    .brand-icon { display:grid; place-items:center; width:42px; height:42px; border-radius:14px; background:#fff; box-shadow:0 6px 20px #6558e833; font-size:22px; }
+    .tagline { color:var(--muted); font-size:.88rem; }
+    .stats { display:flex; gap:9px; }
+    .stat { display:flex; align-items:center; gap:7px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:9px 13px; font-size:.88rem; font-weight:750; }
+    .stat span:first-child { font-size:1rem; }
+    main { background:var(--paper); border:1px solid #e8ecf5; border-radius:26px; padding:clamp(20px, 5vw, 42px); box-shadow:var(--shadow); }
+    .topline { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:17px; }
+    .level { color:var(--purple-dark); background:#f0eeff; border-radius:999px; padding:8px 12px; font-size:.78rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+    .round { color:var(--muted); font-size:.88rem; font-weight:650; }
+    .progress { height:8px; overflow:hidden; background:#eef0f7; border-radius:99px; margin-bottom:32px; }
+    .progress-bar { height:100%; width:0; background:linear-gradient(90deg, #7668f4, #a28cff); border-radius:inherit; transition:width .35s ease; }
+    .scene { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:.86rem; font-weight:700; margin-bottom:12px; }
+    .scene-icon { font-size:1.15rem; }
+    h1 { font-size:clamp(1.7rem, 5vw, 2.45rem); letter-spacing:-.055em; line-height:1.13; margin:0 0 10px; }
+    .instruction { color:var(--muted); line-height:1.55; margin:0 0 25px; }
+    .chat { display:flex; gap:13px; align-items:flex-start; margin:0 0 28px; }
+    .avatar { flex:none; width:43px; height:43px; display:grid; place-items:center; border-radius:50%; background:#fff0df; font-size:22px; }
+    .bubble-wrap { min-width:0; }
+    .speaker { margin:2px 0 6px; color:var(--muted); font-size:.76rem; font-weight:750; }
+    .bubble { display:inline-block; max-width:100%; padding:14px 17px; border:1px solid var(--line); border-radius:5px 18px 18px 18px; background:#f8f9fd; font-size:1.04rem; line-height:1.5; }
+    .builder-label { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; font-size:.88rem; font-weight:800; }
+    .small-note { color:var(--muted); font-size:.78rem; font-weight:500; }
+    .answer-area { min-height:82px; display:flex; flex-wrap:wrap; align-content:flex-start; gap:9px; padding:13px; border:2px dashed #dfe4f0; border-radius:16px; background:#fbfcff; transition:border-color .2s, background .2s; }
+    .answer-area:empty::before { content:"Tap the words below to build your reply…"; align-self:center; padding:10px 4px; color:#98a1b4; font-size:.91rem; }
+    .answer-area.good { border-color:#84d2a7; background:#f3fff7; }
+    .answer-area.bad { border-color:#f1ad91; background:#fff9f5; }
+    .word { border:1px solid #e1e5ef; border-radius:11px; background:#fff; color:var(--ink); padding:10px 13px; min-height:42px; box-shadow:0 2px 5px #1a2a4a0b; cursor:pointer; font-weight:650; transition:transform .12s, border-color .12s, box-shadow .12s; }
+    .word:hover { transform:translateY(-2px); border-color:#aaa1ff; box-shadow:0 5px 12px #6758e822; }
+    .word:focus-visible, .action:focus-visible { outline:3px solid #aaa1ff; outline-offset:3px; }
+    .word.used { color:#b0b7c5; background:#f3f5f9; border-color:#edf0f5; box-shadow:none; }
+    .word.used:hover { transform:none; cursor:default; }
+    .word-bank { display:flex; flex-wrap:wrap; gap:9px; margin-top:12px; }
+    .feedback { display:none; margin-top:16px; padding:14px 16px; border-radius:14px; line-height:1.5; }
+    .feedback.show { display:block; }
+    .feedback.success { color:#155f3b; background:var(--mint); }
+    .feedback.try { color:#87502f; background:var(--coral); }
+    .feedback strong { display:block; margin-bottom:3px; }
+    .controls { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:11px; margin-top:22px; }
+    .left-actions, .right-actions { display:flex; flex-wrap:wrap; gap:9px; }
+    .action { min-height:45px; border:1px solid var(--line); border-radius:12px; background:#fff; color:var(--ink); padding:0 16px; cursor:pointer; font-weight:750; transition:transform .12s, background .12s; }
+    .action:hover:not(:disabled) { transform:translateY(-1px); background:#f8f8ff; }
+    .action:disabled { opacity:.45; cursor:not-allowed; }
+    .action.primary { color:#fff; background:var(--purple); border-color:var(--purple); padding:0 22px; box-shadow:0 5px 13px #6758e833; }
+    .action.primary:hover:not(:disabled) { background:var(--purple-dark); }
+    .action.next { display:none; color:#fff; background:#18764a; border-color:#18764a; }
+    .action.next.show { display:inline-block; }
+    .footer-note { text-align:center; color:var(--muted); font-size:.8rem; margin:20px 0 0; }
+    .complete { display:none; text-align:center; padding:30px 8px 12px; }
+    .complete.show { display:block; }
+    .complete-emoji { font-size:56px; }
+    .complete h2 { font-size:2rem; margin:10px 0; letter-spacing:-.04em; }
+    .complete p { color:var(--muted); line-height:1.6; }
+    #game.hidden { display:none; }
+    @media (max-width:600px) {
+      .page { width:min(100% - 20px, 950px); padding-top:16px; }
+      header { align-items:flex-start; flex-direction:column; }
+      .stats { position:absolute; top:19px; right:10px; }
+      .stat { padding:8px 10px; font-size:.8rem; }
+      .tagline { max-width:190px; }
+      main { border-radius:20px; }
+      .progress { margin-bottom:25px; }
+      .controls { align-items:stretch; }
+      .left-actions, .right-actions { flex:1; }
+      .right-actions { justify-content:flex-end; }
+      .action { padding:0 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <div class="brand"><span class="brand-icon" aria-hidden="true">💬</span> Sentence Steps</div>
+        <div class="tagline">Build full sentences. Keep the conversation going.</div>
+      </div>
+      <div class="stats" aria-label="Your score">
+        <div class="stat"><span aria-hidden="true">⭐</span><span id="score">0</span><span>points</span></div>
+        <div class="stat"><span aria-hidden="true">🔥</span><span id="streak">0</span><span>streak</span></div>
+      </div>
+    </header>
+    <main>
+      <section id="game" aria-live="polite">
+        <div class="topline"><span class="level">Everyday English · Beginner</span><span class="round" id="round">Conversation 1 of 8</span></div>
+        <div class="progress" role="progressbar" aria-label="Game progress" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><div class="progress-bar" id="progress"></div></div>
+        <div class="scene"><span class="scene-icon" id="sceneIcon">☕</span><span id="sceneName">At a café</span></div>
+        <h1>What would you say?</h1>
+        <p class="instruction">Put the words in order to make a complete, natural reply. Start with a capital letter and finish with punctuation.</p>
+        <div class="chat">
+          <div class="avatar" id="avatar" aria-hidden="true">👩‍🍳</div>
+          <div class="bubble-wrap"><div class="speaker" id="speaker">Barista</div><div class="bubble" id="prompt">Hello! What would you like to drink?</div></div>
+        </div>
+        <div class="builder-label"><span>Your reply</span><span class="small-note">Tap a word again to remove it</span></div>
+        <div class="answer-area" id="answer" aria-label="Your sentence"></div>
+        <div class="word-bank" id="wordBank" aria-label="Words to choose from"></div>
+        <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+        <div class="controls">
+          <div class="left-actions">
+            <button class="action" id="hintBtn" type="button">💡 Hint</button>
+            <button class="action" id="clearBtn" type="button">↶ Clear</button>
+          </div>
+          <div class="right-actions">
+            <button class="action primary" id="checkBtn" type="button">Check sentence</button>
+            <button class="action next" id="nextBtn" type="button">Next conversation →</button>
+          </div>
+        </div>
+        <p class="footer-note">Tip: A complete sentence usually has a subject and a verb. You can also use your keyboard: press Enter to check.</p>
+      </section>
+      <section class="complete" id="complete" aria-live="polite">
+        <div class="complete-emoji">🎉</div>
+        <h2>Conversation complete!</h2>
+        <p id="finalMessage">Great work building full English sentences.</p>
+        <button class="action primary" id="playAgain" type="button">Play again</button>
+      </section>
+    </main>
+  </div>
+  <script>
+    const conversations = [
+      { scene:"At a café", icon:"☕", avatar:"👩‍🍳", speaker:"Barista", prompt:"Hello! What would you like to drink?", answer:"I would like a cup of tea, please.", words:["I","would","like","a","cup","of","tea,","please.","you","coffee?"], tip:"Begin with “I would like…” and end politely with “please.”", note:"“I would like…” is a polite way to order. “Please” makes your request friendly." },
+      { scene:"Meeting someone", icon:"👋", avatar:"🙂", speaker:"Alex", prompt:"Hi, I'm Alex. What's your name?", answer:"My name is Jordan.", words:["My","name","is","Jordan.","I","am","called","hello"], tip:"Start with “My name…” and add the verb “is.”", note:"Use “My name is…” to introduce yourself. You can also say, “I’m Jordan.”" },
+      { scene:"Making plans", icon:"🎬", avatar:"🧑", speaker:"Sam", prompt:"Would you like to see a movie tonight?", answer:"Yes, I would love to see a movie.", words:["Yes,","I","would","love","to","see","a","movie.","No,","maybe","tomorrow."], tip:"A warm way to accept starts with “Yes, I would…”", note:"“I would love to…” is a friendly, enthusiastic way to accept an invitation." },
+      { scene:"Asking for help", icon:"🧭", avatar:"🧑‍💼", speaker:"A visitor", prompt:"Excuse me, can you help me find the train station?", answer:"Yes, I can show you the way.", words:["Yes,","I","can","show","you","the","way.","No,","I","don't","know."], tip:"Start with “Yes, I can…” then say what you can do.", note:"Use “I can” plus an action verb to offer help: “I can show you…”" },
+      { scene:"Talking about your day", icon:"🌤️", avatar:"😊", speaker:"Taylor", prompt:"How was your weekend?", answer:"I visited my family and had a great time.", words:["I","visited","my","family","and","had","a","great","time.","It","was","busy."], tip:"Tell what you did. Join two ideas with “and.”", note:"For finished past activities, use past-tense verbs: “visited” and “had.”" },
+      { scene:"At a shop", icon:"🛍️", avatar:"🧑‍💼", speaker:"Shop assistant", prompt:"Can I help you find anything?", answer:"I am looking for a blue shirt.", words:["I","am","looking","for","a","blue","shirt.","I","need","some","help."], tip:"Say what you are searching for: “I am looking for…”", note:"“I’m looking for…” is a useful phrase when shopping or asking for something." },
+      { scene:"Talking about hobbies", icon:"🎨", avatar:"🙂", speaker:"Jamie", prompt:"What do you like to do in your free time?", answer:"I enjoy reading books in my free time.", words:["I","enjoy","reading","books","in","my","free","time.","I","like","to","swim."], tip:"Start with “I enjoy…” and follow it with an activity ending in “-ing.”", note:"After “enjoy,” use an -ing verb: “enjoy reading,” “enjoy cooking.”" },
+      { scene:"Saying goodbye", icon:"🚪", avatar:"👋", speaker:"Morgan", prompt:"It was lovely talking with you. See you soon!", answer:"It was nice talking with you too. Goodbye!", words:["It","was","nice","talking","with","you","too.","Goodbye!","See","you","later!"], tip:"Return the kind words, then say goodbye.", note:"“It was nice talking with you too” is a natural, friendly response." }
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    let roundIndex = 0, score = 0, streak = 0, selected = [], hintUsed = false, completed = false;
+
+    function shuffled(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+    function render() {
+      const item = conversations[roundIndex];
+      selected = []; hintUsed = false; completed = false;
+      $("sceneName").textContent = item.scene;
+      $("sceneIcon").textContent = item.icon;
+      $("avatar").textContent = item.avatar;
+      $("speaker").textContent = item.speaker;
+      $("prompt").textContent = item.prompt;
+      $("round").textContent = `Conversation ${roundIndex + 1} of ${conversations.length}`;
+      $("progress").style.width = `${roundIndex / conversations.length * 100}%`;
+      $("progress").parentElement.setAttribute("aria-valuenow", roundIndex);
+      $("answer").className = "answer-area";
+      $("feedback").className = "feedback";
+      $("feedback").textContent = "";
+      $("checkBtn").style.display = "inline-block";
+      $("nextBtn").classList.remove("show");
+      $("hintBtn").disabled = false;
+      $("clearBtn").disabled = false;
+      $("wordBank").innerHTML = "";
+      shuffled(item.words).forEach((word, index) => {
+        const button = document.createElement("button");
+        button.type = "button"; button.className = "word"; button.textContent = word;
+        button.setAttribute("aria-label", `Add ${word}`);
+        button.addEventListener("click", () => toggleWord(index));
+        $("wordBank").appendChild(button);
+      });
+      drawAnswer();
+    }
+    function toggleWord(index) {
+      if (completed) return;
+      const position = selected.indexOf(index);
+      if (position >= 0) selected.splice(position, 1); else selected.push(index);
+      $("feedback").className = "feedback";
+      $("answer").className = "answer-area";
+      drawAnswer();
+    }
+    function drawAnswer() {
+      const area = $("answer"); area.innerHTML = "";
+      selected.forEach((wordIndex) => {
+        const button = document.createElement("button");
+        button.type = "button"; button.className = "word"; button.textContent = conversations[roundIndex].words[wordIndex];
+        button.setAttribute("aria-label", `Remove ${button.textContent}`);
+        button.addEventListener("click", () => toggleWord(wordIndex));
+        area.appendChild(button);
+      });
+      [...$("wordBank").children].forEach((button, index) => {
+        const used = selected.includes(index);
+        button.classList.toggle("used", used);
+        button.disabled = used || completed;
+        button.setAttribute("aria-pressed", String(used));
+      });
+      $("checkBtn").disabled = selected.length === 0 || completed;
+      $("clearBtn").disabled = selected.length === 0 || completed;
+    }
+    function normalize(text) { return text.toLowerCase().replace(/[^a-z0-9' ]/g, "").replace(/\s+/g, " ").trim(); }
+    function checkAnswer() {
+      if (!selected.length || completed) return;
+      const item = conversations[roundIndex];
+      const answer = selected.map(index => item.words[index]).join(" ");
+      const feedback = $("feedback");
+      if (normalize(answer) === normalize(item.answer)) {
+        completed = true;
+        const points = hintUsed ? 5 : 10;
+        score += points; streak += 1;
+        $("score").textContent = score; $("streak").textContent = streak;
+        $("answer").className = "answer-area good";
+        feedback.className = "feedback show success";
+        feedback.innerHTML = `<strong>That’s a complete sentence! +${points} points</strong>${item.note}`;
+        $("checkBtn").style.display = "none";
+        $("nextBtn").classList.add("show");
+        $("hintBtn").disabled = true; $("clearBtn").disabled = true;
+        [...$("wordBank").children].forEach(button => button.disabled = true);
+      } else {
+        streak = 0; $("streak").textContent = streak;
+        $("answer").className = "answer-area bad";
+        feedback.className = "feedback show try";
+        feedback.innerHTML = `<strong>Not quite—try rearranging the words.</strong>${item.tip}`;
+      }
+    }
+    function showHint() {
+      if (completed || hintUsed) return;
+      hintUsed = true;
+      const nextWord = conversations[roundIndex].answer.split(" ")[selected.length];
+      const feedback = $("feedback");
+      feedback.className = "feedback show try";
+      feedback.innerHTML = `<strong>Hint (this round is worth 5 points).</strong>${conversations[roundIndex].tip}${nextWord ? ` Next, look for: “${nextWord}”` : " You have all the words—check their order."}`;
+      $("hintBtn").disabled = true;
+    }
+    function nextRound() {
+      if (roundIndex + 1 >= conversations.length) {
+        $("game").classList.add("hidden"); $("complete").classList.add("show");
+        $("progress").style.width = "100%";
+        $("finalMessage").textContent = `You finished all ${conversations.length} conversations and earned ${score} points. Keep practicing—every full sentence helps you speak with confidence!`;
+      } else { roundIndex++; render(); }
+    }
+    $("checkBtn").addEventListener("click", checkAnswer);
+    $("nextBtn").addEventListener("click", nextRound);
+    $("hintBtn").addEventListener("click", showHint);
+    $("clearBtn").addEventListener("click", () => { selected = []; $("answer").className = "answer-area"; $("feedback").className = "feedback"; drawAnswer(); });
+    $("playAgain").addEventListener("click", () => {
+      roundIndex = 0; score = 0; streak = 0;
+      $("score").textContent = "0"; $("streak").textContent = "0";
+      $("complete").classList.remove("show"); $("game").classList.remove("hidden"); render();
+    });
+    document.addEventListener("keydown", event => { if (event.key === "Enter" && !$("nextBtn").classList.contains("show")) checkAnswer(); });
+    render();
+  </script>
+</body>
+</html>
